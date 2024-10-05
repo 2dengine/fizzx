@@ -2,7 +2,7 @@
 Fizz is a lightweight collision library for the [Lua](https://lua.org) programming language.
 Fizz was developed for educational purposes, but is also useful in environments where external option like [Box2D](https://box2d.org) are unavailable.
 
-The source code available on [GitHub](https://github.com/2dengine/fizzx) and the official documentation is from [2dengine.com](https://2dengine.com/doc/fizzx.html)
+The source code available on [GitHub](https://github.com/2dengine/fizzx) and the official documentation is on [2dengine.com](https://2dengine.com/doc/fizzx.html)
 
 
 # Example

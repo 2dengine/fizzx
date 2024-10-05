@@ -1,0 +1,652 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body { background-color:#fff; padding: 0; margin: 0; }
+table, pre { border:1px solid #ccc; width:100%; padding:1em; background-color:#eee; }
+pre { overflow-x: auto }
+th { border-bottom:1px dashed #ccc; text-align:left; padding-top:0.5em; }
+td { vertical-align: top; }
+tr td:first-of-type { width:4em; white-space:nowrap; }
+.arg { color:#c00; }
+.type { color:#00f; }
+.meta, th { color:#aaa; }
+.page { clear: both; }
+.page, .menu, .cont, pre { box-sizing:border-box; display:block; margin: 0; }
+.menu, .cont { overflow-x:hidden; overflow-y:auto; height: 100%; max-height: 100%; padding: 1em; }
+.menu { float:left; width:25%; background-color:#eee; border-right:1px solid #ccc; padding-top:2em; }
+.menu h2 { white-space: nowrap; };
+footer { font-size: 0.9em }
+a:link { text-decoration: none; }
+.cont { float:right; width:75%; }
+.see { font-size: 0.9em; padding: 0.5em; }
+h1,h2,h3,h4 { padding: 1em 0 0 0; margin: 0; }
+ul { padding: 0.5em 1em; margin: 0; margin-left: 1.5em; }
+hr { border-top: 1px solid #ccc; }
+section { display: none };
+section:first-child, section:target { display: block; }
+</style>
+<script>
+function nav(event) {
+  const hash = window.location.hash.match(/#(.+)/);
+  let sec = null;
+  let targ = null;
+  if (hash && hash[1]) {
+    const parts = hash[1].split(/[\.\:]/);
+    if (parts && parts[0])
+      sec = document.getElementById(parts[0]);
+    targ = document.getElementById(hash[1]);
+    if (!sec && targ)
+      sec = targ.parentElement;
+  }
+  const sections = document.getElementsByTagName('section');
+  for (let s of sections)
+    s.style['display'] = 'none';
+  if (sec)
+    sec.style['display'] = 'block';
+  else
+    sections[0].style['display'] = 'block';
+    
+  targ.scrollIntoView(); //{ behavior: 'smooth', block: 'start' });
+}
+
+window.addEventListener("hashchange", nav);
+window.addEventListener("load", nav);
+</script>
+</head>
+<body>
+<div class='page'>
+<div class='cont'>
+<section><p><h2> Fizz X </h2>
+Fizz is a lightweight collision library for the <a href="https://lua.org">Lua</a> programming language.
+Fizz was developed for educational purposes, but is also useful in environments where external option like <a href="https://box2d.org">Box2D</a> are unavailable.<br>
+The source code available on <a href="https://github.com/2dengine/fizzx">GitHub</a> and the official documentation is from <a href="https://2dengine.com/doc/fizzx.html">2dengine.com</a><br>
+<h2> Example</h2>
+<pre>fizz = require("fizzx")
+fizz.setGravity(0, 100)<br>
+ball = fizz.addDynamic('circle', 300, 100, 10)
+wall = fizz.addStatic('rect', 300, 400, 200, 10)<br>
+ball.bounce = 0.5<br>
+function love.update(dt)
+  fizz.update(dt)
+end<br>
+function love.draw()
+  love.graphics.circle("fill", ball.x, ball.y, ball.r)
+  love.graphics.rectangle("fill", wall.x - wall.hw, wall.y - wall.hh, wall.hw*2, wall.hh*2)
+end
+</pre><br>
+<h2> Shapes</h2>
+Fizz supports three different shape types: circles, rectangles and line segments.
+Note that rectangles are represented by a center point and half-width and half-height extents.
+Rectangles are always axis-aligned and cannot have rotation.
+Line segments are useful for making slopes and possibly "one-sided" platforms.
+The direction of line segments affects how they handle collisions.
+Line segments "push" other intersecting shapes at 90 degrees counter-clockwise of the segment slope.<br>
+In addition, there are three classes of shapes: static, kinematic and dynamic.
+Static shapes are immobile and do not respond to collisions or gravity.
+Static shapes can be used to represent walls and platforms in your game.
+Kinematic shapes do not respond to collisions or gravity, but can be moved by manually changing their velocity.
+Kinematic shapes can be used to simulate moving platforms and doors.
+Dynamic shapes respond to collisions and gravity.
+Dynamic shapes can be used to simulate the moving objects in your game.<br>
+<h3> shape.x, shape.y</h3>
+Center position of circle and rectangle shapes.
+Starting point for line segments.<br>
+<h3> shape.x2, shape.y2</h3>
+Ending point for line segments.<br>
+<h3> shape.r</h3>
+Radius for circle shapes.<br>
+<h3> shape.hw, shape.hh</h3>
+Half-width and half-height extents for rectangle shapes.<br>
+<h3> shape.xv, shape.yv</h3>
+Velocity of a dynamic or kinematic shape.<br>
+<h3> shape.sx, shape.sy</h3>
+Accumulated displacement vector of the shape.<br>
+<h3> shape.mass, shape.imass</h3>
+Mass and inverse mass of the shape.<br>
+<h3> shape.friction</h3>
+Friction value applied when the edges of two shapes are touching.
+As this value increases, the shape will slow down when sliding on top of other shapes.
+Must be between 0 and 1.<br>
+<h3> shape.bounce</h3>
+Bounce or restitution value of the shape.
+As this value increases, the shape will bounce more elastically when colliding with other shapes.
+Must be between 0 and 1.<br>
+<h3> shape.damping</h3>
+Linear damping of the shape.
+The damping value slows the velocity of moving shapes over time.
+Must be between 0 and infinity.<br>
+<h3> shape.gravity</h3>
+Gravity scale of the shape which is multiplied by the global gravity value.
+Set this to 0 and your shape will not be affected by gravity.
+When negative, the shape will levitate.<br>
+<h3> shape.onCollide(a, b, nx, ny, pen)</h3>
+Collision callback providing the two colliding shapes, the collision normal and the penetration depth.
+If this callback returns false the collision will be ignored.
+Shapes should not be moved or destroyed during this callback.<br>
+<h2> Limitations</h2>
+<h3> Torque</h3>
+Torque and rotation are not supported.
+This has several implications, most notably with circle shapes.
+Circle shapes are axis-aligned, so they never "spin" or "roll".
+Axis-aligned circles with friction behave like the wheels of a car while the breaks are on.
+If you want to simulate torque, I would suggest a more sophisticated library, like Box2D.
+For simple platform games, you could always draw or animate your objects as if they are rotating.<br>
+<h3> Tunneling</h3>
+Since the library uses non-continuous collision detection, it's possible for shapes that move at a high velocity to "tunnel" or pass through other shapes.
+This problem can be accommodated in a few ways.
+First, make sure fizz.maxVelocity is defined within a reasonable range.
+Second, set up your game loop to update the simulation with a constant time step.
+This will make sure that the game will play the same on any machine.
+Here is an example of how to update the simulation with a constant time step:
+<pre>accum = 0
+step = 1/60
+function update(dt)
+  accum = accum + dt
+  while accum >= step do
+    fizz.update(step)
+    accum = accum - step
+  end
+end
+</pre><br>
+<h3> Partitioning</h3>
+Fizz uses flat grid partitioning to reduce the number of collision tests.
+You can adjust the default grid cell size if the performance is not up to par.<br>
+Manually changing the position of shapes affects the partitioning system.
+After modifying these values, you have to repartition the particular shape, for example:
+<pre>shape.x = 100
+shape.y = 100
+fizz.repartition(shape)
+</pre>
+An alternative approach is to use the built-in functions:
+<pre>fizz.positionShape(100, 100)
+</pre>
+Note that changing the size of shapes affects the partition system as well:
+<pre>circle.r = circle.r + 5
+fizz.repartition(circle)
+</pre>
+If you explicitly disable partitioning, then you can ignore this limitation.<br>
+<h3> Stacking</h3>
+Piling two or more dynamic shapes results in jittery behavior, because there is no simple way to figure out which collision pair should be resolved first.
+This may cause one shape to overlap another in the stack even after their collisions have been resolved.<br>
+<h3> Ledges</h3>
+This issue occurs with rows of static rectangle shapes.
+When a dynamic shape is sliding on top of the row it may get "blocked" by the ledge between rects.
+The best solution is to use line segments to represent platforms.<br>
+<h2> Credits</h2>
+This library is based and builds upon the original work of <a href="https://github.com/Taehl">Taehl</a><br>
+Please support our work so we can release more free software in the future.</p></section><section id='fizz'>
+<h3><a href="#">Fizz X</a> &gt; fizz</h3>
+<h2>fizz</h2>
+The main module that you need to require in your game<br>
+<table>
+<tr><td><a href='#fizz.addDynamic'>fizz.addDynamic</a>(<span class='arg'>shape</span>, <span class='arg'>Center</span>)</td></tr>
+<tr><td><a href='#fizz.addKinematic'>fizz.addKinematic</a>(<span class='arg'>shape</span>, <span class='arg'>Center</span>)</td></tr>
+<tr><td><a href='#fizz.addStatic'>fizz.addStatic</a>(<span class='arg'>shape</span>, <span class='arg'>Center</span>)</td></tr>
+<tr><td><a href='#fizz.getCollisionCount'>fizz.getCollisionCount</a>()</td></tr>
+<tr><td><a href='#fizz.getDisplacement'>fizz.getDisplacement</a>(<span class='arg'>shape</span>)</td></tr>
+<tr><td><a href='#fizz.getGravity'>fizz.getGravity</a>()</td></tr>
+<tr><td><a href='#fizz.getMass'>fizz.getMass</a>(<span class='arg'>shape</span>, <span class='arg'>mass</span>)</td></tr>
+<tr><td><a href='#fizz.getPosition'>fizz.getPosition</a>(<span class='arg'>shape</span>)</td></tr>
+<tr><td><a href='#fizz.getVelocity'>fizz.getVelocity</a>(<span class='arg'>shape</span>)</td></tr>
+<tr><td><a href='#fizz.removeShape'>fizz.removeShape</a>(<span class='arg'>shape</span>)</td></tr>
+<tr><td><a href='#fizz.setDensity'>fizz.setDensity</a>(<span class='arg'>s</span>, <span class='arg'>d</span>)</td></tr>
+<tr><td><a href='#fizz.setGravity'>fizz.setGravity</a>(<span class='arg'>x</span>, <span class='arg'>y</span>)</td></tr>
+<tr><td><a href='#fizz.setMass'>fizz.setMass</a>(<span class='arg'>shape</span>, <span class='arg'>mass</span>)</td></tr>
+<tr><td><a href='#fizz.setMaxVelocity'>fizz.setMaxVelocity</a>(<span class='arg'>velocity</span>)</td></tr>
+<tr><td><a href='#fizz.setPosition'>fizz.setPosition</a>(<span class='arg'>shape</span>, <span class='arg'>X</span>, <span class='arg'>Y</span>)</td></tr>
+<tr><td><a href='#fizz.setVelocity'>fizz.setVelocity</a>(<span class='arg'>shape</span>, <span class='arg'>xv</span>, <span class='arg'>yv</span>)</td></tr>
+<tr><td><a href='#fizz.update'>fizz.update</a>(<span class='arg'>delta</span>, <span class='arg'>iterations</span>)</td></tr>
+</table>
+<h3 id='fizz.addDynamic'>fizz.addDynamic(<span class='arg'>shape</span>, <span class='arg'>Center</span>)</h3>
+Creates a dynamic shape.  Dynamic shapes can move and collide with other shapes.
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a href='#tstring' class='type'>tstring</a></td><td><b class='arg'>shape</b><br>
+Shape type: "rect", "circle" or "line"</td></tr>
+<tr><td><a href='#arg' class='type'>arg</a></td><td><b class='arg'>Center</b><br>
+position and extents for rectangles, radius for circles or starting and ending point for lines</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a href='#shape' class='type'>shape</a></td>
+<td>New shape object</td></tr>
+</table>
+<h3 id='fizz.addKinematic'>fizz.addKinematic(<span class='arg'>shape</span>, <span class='arg'>Center</span>)</h3>
+Creates a kinematic shape.  Kinematic shapes have a velocity but do not respond to collisions.  This can be useful for simulating moving platforms.
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a href='#tstring' class='type'>tstring</a></td><td><b class='arg'>shape</b><br>
+Shape type: "rect", "circle" or "line"</td></tr>
+<tr><td><a href='#arg' class='type'>arg</a></td><td><b class='arg'>Center</b><br>
+position and extents for rectangles, radius for circles or starting and ending point for lines</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a href='#shape' class='type'>shape</a></td>
+<td>New shape object</td></tr>
+</table>
+<h3 id='fizz.addStatic'>fizz.addStatic(<span class='arg'>shape</span>, <span class='arg'>Center</span>)</h3>
+Creates a static shape.  Static shapes are immovable and do not move or respond to collisions
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a href='#tstring' class='type'>tstring</a></td><td><b class='arg'>shape</b><br>
+Shape type: "rect", "circle" or "line"</td></tr>
+<tr><td><a href='#arg' class='type'>arg</a></td><td><b class='arg'>Center</b><br>
+position and extents for rectangles, radius for circles or starting and ending point for lines</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a href='#shape' class='type'>shape</a></td>
+<td>New shape object</td></tr>
+</table>
+<h3 id='fizz.getCollisionCount'>fizz.getCollisionCount()</h3>
+Gets the number of collision checks performed between pairs of shapes during the last update.
+<table>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Number of collision checks</td></tr>
+</table>
+<h3 id='fizz.getDisplacement'>fizz.getDisplacement(<span class='arg'>shape</span>)</h3>
+Returns the accumulated separation vector of a shape for the last collision step.
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>shape</b><br>
+Shape</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>number</a></td>
+<td>X separation</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Y separation</td></tr>
+</table>
+<h3 id='fizz.getGravity'>fizz.getGravity()</h3>
+Gets the global gravity
+<table>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>number</a></td>
+<td>X-component of gravity</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Y-component of gravity</td></tr>
+</table>
+<h3 id='fizz.getMass'>fizz.getMass(<span class='arg'>shape</span>, <span class='arg'>mass</span>)</h3>
+Gets the mass of shape.
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>shape</b><br>
+Shape</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>mass</b><br>
+Mass value</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Mass</td></tr>
+</table>
+<h3 id='fizz.getPosition'>fizz.getPosition(<span class='arg'>shape</span>)</h3>
+Gets the position of a shape (starting point for line shapes).
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>shape</b><br>
+Shape</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>number</a></td>
+<td>X position</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Y position</td></tr>
+</table>
+<h3 id='fizz.getVelocity'>fizz.getVelocity(<span class='arg'>shape</span>)</h3>
+Returns the velocity of a shape.
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>shape</b><br>
+Shape</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>number</a></td>
+<td>X velocity</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Y velocity</td></tr>
+</table>
+<h3 id='fizz.removeShape'>fizz.removeShape(<span class='arg'>shape</span>)</h3>
+Removes a shape from the simulation.
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>shape</b><br>
+Shape</td></tr>
+</table>
+<h3 id='fizz.setDensity'>fizz.setDensity(<span class='arg'>s</span>, <span class='arg'>d</span>)</h3>
+
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>s</b><br>
+</td></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>d</b><br>
+</td></tr>
+</table>
+<h3 id='fizz.setGravity'>fizz.setGravity(<span class='arg'>x</span>, <span class='arg'>y</span>)</h3>
+
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>x</b><br>
+</td></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>y</b><br>
+</td></tr>
+</table>
+<h3 id='fizz.setMass'>fizz.setMass(<span class='arg'>shape</span>, <span class='arg'>mass</span>)</h3>
+Sets the mass of shape.
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>shape</b><br>
+Shape</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>mass</b><br>
+Mass</td></tr>
+</table>
+<h3 id='fizz.setMaxVelocity'>fizz.setMaxVelocity(<span class='arg'>velocity</span>)</h3>
+Sets the maximum velocity treshold.
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>velocity</b><br>
+Maximum velocity</td></tr>
+</table>
+<h3 id='fizz.setPosition'>fizz.setPosition(<span class='arg'>shape</span>, <span class='arg'>X</span>, <span class='arg'>Y</span>)</h3>
+Moves the shape to a given position.  This function is used to "teleport" shapes.
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>shape</b><br>
+Shape</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>X</b><br>
+position</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>Y</b><br>
+position</td></tr>
+</table>
+<h3 id='fizz.setVelocity'>fizz.setVelocity(<span class='arg'>shape</span>, <span class='arg'>xv</span>, <span class='arg'>yv</span>)</h3>
+Sets the velocity of a shape
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>shape</b><br>
+Shape</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>xv</b><br>
+X velocity</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>yv</b><br>
+Y velocity</td></tr>
+</table>
+<h3 id='fizz.update'>fizz.update(<span class='arg'>delta</span>, <span class='arg'>iterations</span>)</h3>
+Updates the simulation.  To avoid tunneling, you want to use a fixed time step.
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>delta</b><br>
+Delta value</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>iterations</b><br>
+Number of iterations</td></tr>
+</table>
+</section>
+<section id='partition'>
+<h3><a href="#">Fizz X</a> &gt; partition</h3>
+<h2>partition</h2>
+Broad-phase partitioning code<br>
+<table>
+<tr><td><a href='#partition.check'>partition.check</a>(<span class='arg'>shape</span>, <span class='arg'>...</span>)</td></tr>
+<tr><td><a href='#partition.getCellsize'>partition.getCellsize</a>()</td></tr>
+<tr><td><a href='#partition.insert'>partition.insert</a>(<span class='arg'>shape</span>, <span class='arg'>x</span>, <span class='arg'>y</span>, <span class='arg'>hw</span>, <span class='arg'>hh</span>)</td></tr>
+<tr><td><a href='#partition.remove'>partition.remove</a>(<span class='arg'>shape</span>)</td></tr>
+<tr><td><a href='#partition.setCellsize'>partition.setCellsize</a>(<span class='arg'>cellsize</span>)</td></tr>
+</table>
+<h3 id='partition.check'>partition.check(<span class='arg'>shape</span>, <span class='arg'>...</span>)</h3>
+
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>shape</b><br>
+</td></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>...</b><br>
+</td></tr>
+</table>
+<h3 id='partition.getCellsize'>partition.getCellsize()</h3>
+
+<h3 id='partition.insert'>partition.insert(<span class='arg'>shape</span>, <span class='arg'>x</span>, <span class='arg'>y</span>, <span class='arg'>hw</span>, <span class='arg'>hh</span>)</h3>
+
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>shape</b><br>
+</td></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>x</b><br>
+</td></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>y</b><br>
+</td></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>hw</b><br>
+</td></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>hh</b><br>
+</td></tr>
+</table>
+<h3 id='partition.remove'>partition.remove(<span class='arg'>shape</span>)</h3>
+
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>shape</b><br>
+</td></tr>
+</table>
+<h3 id='partition.setCellsize'>partition.setCellsize(<span class='arg'>cellsize</span>)</h3>
+
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>cellsize</b><br>
+</td></tr>
+</table>
+</section>
+<section id='shape'>
+<h3><a href="#">Fizz X</a> &gt; shape</h3>
+<h2>shape</h2>
+Shapes intersection code<br>
+<table>
+<tr><td><a href='#shape.area'>shape.area</a>(<span class='arg'>s</span>)</td></tr>
+<tr><td><a href='#shape.bounds'>shape.bounds</a>(<span class='arg'>shape</span>)</td></tr>
+<tr><td><a href='#shape.create.circle'>shape.create.circle</a>(<span class='arg'>x</span>, <span class='arg'>y</span>, <span class='arg'>r</span>)</td></tr>
+<tr><td><a href='#shape.create.line'>shape.create.line</a>(<span class='arg'>x</span>, <span class='arg'>y</span>, <span class='arg'>x2</span>, <span class='arg'>y2</span>)</td></tr>
+<tr><td><a href='#shape.create.rect'>shape.create.rect</a>(<span class='arg'>x</span>, <span class='arg'>y</span>, <span class='arg'>hw</span>, <span class='arg'>hw</span>)</td></tr>
+<tr><td><a href='#shape.test'>shape.test</a>(<span class='arg'>a</span>, <span class='arg'>b</span>, <span class='arg'>dt</span>)</td></tr>
+<tr><td><a href='#shape.tests.circle.circle'>shape.tests.circle.circle</a>(<span class='arg'>a</span>, <span class='arg'>b</span>, <span class='arg'>dt</span>)</td></tr>
+<tr><td><a href='#shape.tests.circle.line'>shape.tests.circle.line</a>(<span class='arg'>a</span>, <span class='arg'>b</span>, <span class='arg'>dt</span>)</td></tr>
+<tr><td><a href='#shape.tests.line.line'>shape.tests.line.line</a>(<span class='arg'>a</span>, <span class='arg'>b</span>, <span class='arg'>dt</span>)</td></tr>
+<tr><td><a href='#shape.tests.rect.circle'>shape.tests.rect.circle</a>(<span class='arg'>a</span>, <span class='arg'>b</span>, <span class='arg'>dt</span>)</td></tr>
+<tr><td><a href='#shape.tests.rect.line'>shape.tests.rect.line</a>(<span class='arg'>a</span>, <span class='arg'>b</span>, <span class='arg'>dt</span>)</td></tr>
+<tr><td><a href='#shape.tests.rect.rect'>shape.tests.rect.rect</a>(<span class='arg'>a</span>, <span class='arg'>b</span>, <span class='arg'>dt</span>)</td></tr>
+<tr><td><a href='#shape.translate'>shape.translate</a>(<span class='arg'>shape</span>, <span class='arg'>dx</span>, <span class='arg'>dy</span>)</td></tr>
+</table>
+<h3 id='shape.area'>shape.area(<span class='arg'>s</span>)</h3>
+
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>s</b><br>
+</td></tr>
+</table>
+<h3 id='shape.bounds'>shape.bounds(<span class='arg'>shape</span>)</h3>
+Returns center position and half width/height extents for any shape
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>shape</b><br>
+Shape</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>number</a></td>
+<td>X-position</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Y-position</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Width extent</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Height extent</td></tr>
+</table>
+<h3 id='shape.create.circle'>shape.create.circle(<span class='arg'>x</span>, <span class='arg'>y</span>, <span class='arg'>r</span>)</h3>
+Creates a new circle shape
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>x</b><br>
+Center x-position </td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>y</b><br>
+Center y-position </td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>r</b><br>
+Radius</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>table</a></td>
+<td>New shape</td></tr>
+</table>
+<h3 id='shape.create.line'>shape.create.line(<span class='arg'>x</span>, <span class='arg'>y</span>, <span class='arg'>x2</span>, <span class='arg'>y2</span>)</h3>
+Creates a new line segment shape
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>x</b><br>
+Starting point x-position </td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>y</b><br>
+Starting point y-position </td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>x2</b><br>
+Ending point x-position</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>y2</b><br>
+Ending point x-position</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>table</a></td>
+<td>New shape</td></tr>
+</table>
+<h3 id='shape.create.rect'>shape.create.rect(<span class='arg'>x</span>, <span class='arg'>y</span>, <span class='arg'>hw</span>, <span class='arg'>hw</span>)</h3>
+Creates a new rectangle shape
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>x</b><br>
+Center x-position </td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>y</b><br>
+Center y-position </td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>hw</b><br>
+Half-width extent</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>hw</b><br>
+Half-height extent</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>table</a></td>
+<td>New shape</td></tr>
+</table>
+<h3 id='shape.test'>shape.test(<span class='arg'>a</span>, <span class='arg'>b</span>, <span class='arg'>dt</span>)</h3>
+
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>a</b><br>
+</td></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>b</b><br>
+</td></tr>
+<tr><td><a class='type'>value</a></td><td><b class='arg'>dt</b><br>
+</td></tr>
+</table>
+<h3 id='shape.tests.circle.circle'>shape.tests.circle.circle(<span class='arg'>a</span>, <span class='arg'>b</span>, <span class='arg'>dt</span>)</h3>
+Tests two circles for intersection
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>a</b><br>
+Circle shape</td></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>b</b><br>
+Circle shape</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>dt</b><br>
+Time interval</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration normal x-component</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration normal y-component</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration depth</td></tr>
+</table>
+<h3 id='shape.tests.circle.line'>shape.tests.circle.line(<span class='arg'>a</span>, <span class='arg'>b</span>, <span class='arg'>dt</span>)</h3>
+Tests a circle versus a line segment for intersection
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>a</b><br>
+Circle shape</td></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>b</b><br>
+Line segment shape</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>dt</b><br>
+Time interval</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration normal x-component</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration normal y-component</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration depth</td></tr>
+</table>
+<h3 id='shape.tests.line.line'>shape.tests.line.line(<span class='arg'>a</span>, <span class='arg'>b</span>, <span class='arg'>dt</span>)</h3>
+Tests two line segments for intersection
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>a</b><br>
+First line segment</td></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>b</b><br>
+Second line segment</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>dt</b><br>
+Time interval</td></tr>
+</table>
+<h3 id='shape.tests.rect.circle'>shape.tests.rect.circle(<span class='arg'>a</span>, <span class='arg'>b</span>, <span class='arg'>dt</span>)</h3>
+Tests a rectangle versus a circle for intersection
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>a</b><br>
+Rectangle shape</td></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>b</b><br>
+Circle shape</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>dt</b><br>
+Time interval</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration normal x-component</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration normal y-component</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration depth</td></tr>
+</table>
+<h3 id='shape.tests.rect.line'>shape.tests.rect.line(<span class='arg'>a</span>, <span class='arg'>b</span>, <span class='arg'>dt</span>)</h3>
+Tests a rectangle versus a line segment for intersection
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>a</b><br>
+Rectangle shape</td></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>b</b><br>
+Line segment shape</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>dt</b><br>
+Time interval</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration normal x-component</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration normal y-component</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration depth</td></tr>
+</table>
+<h3 id='shape.tests.rect.rect'>shape.tests.rect.rect(<span class='arg'>a</span>, <span class='arg'>b</span>, <span class='arg'>dt</span>)</h3>
+Tests two rectangles for intersection
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>a</b><br>
+First rectangle shape</td></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>b</b><br>
+Second rectangle shape</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>dt</b><br>
+Time interval</td></tr>
+<tr><th></td><th>Returns</th></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration normal x-component</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration normal y-component</td></tr>
+<tr><td><a class='type'>number</a></td>
+<td>Penetration depth</td></tr>
+</table>
+<h3 id='shape.translate'>shape.translate(<span class='arg'>shape</span>, <span class='arg'>dx</span>, <span class='arg'>dy</span>)</h3>
+Changes the position of a shape
+<table>
+<tr><th></td><th>Arguments</th></tr>
+<tr><td><a class='type'>table</a></td><td><b class='arg'>shape</b><br>
+Shape</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>dx</b><br>
+Change in x-position</td></tr>
+<tr><td><a class='type'>number</a></td><td><b class='arg'>dy</b><br>
+Change in y-position</td></tr>
+</table>
+</section>
+<footer><br>This document was last updated on October 05, 2024, 
+by <a href="https://2dengine.com">2dengine LLC</a>.
+© All rights reserved.
+<br><br></footer>
+</div>
+<nav class="menu">
+<a href="https://2dengine.com/">
+<svg style="max-width:20em;" version="1.1" id="svg1" viewBox="0 0 1428 273.33334" sodipodi:docname="logo.svg" inkscape:version="1.3 (0e150ed, 2023-07-21)" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"> <defs  id="defs1" /> <sodipodi:namedview  id="namedview1"  pagecolor="#ffffff"  bordercolor="#000000"  borderopacity="0.25"  inkscape:showpageshadow="2"  inkscape:pageopacity="0.0"  inkscape:pagecheckerboard="0"  inkscape:deskcolor="#d1d1d1"  inkscape:zoom="0.93347339"  inkscape:cx="152.12003"  inkscape:cy="136.58665"  inkscape:window-width="1635"  inkscape:window-height="991"  inkscape:window-x="26"  inkscape:window-y="23"  inkscape:window-maximized="0"  inkscape:current-layer="g1" /> <g  inkscape:groupmode="layer"  inkscape:label="Image"  id="g1">  <path  style="fill:#000000"  d="m 841.56585,245.51516 c -41.18372,-9.15579 -69.45741,-37.06971 -77.39821,-76.41333 -3.34971,-16.59655 -2.16061,-43.28132 2.64634,-59.38702 9.62025,-32.232661 32.40524,-59.814261 60.24921,-72.932621 17.63805,-8.30997 30.88625,-10.92924 55.83599,-11.03917 18.81915,-0.0829 22.50635,0.27432 31.28635,3.03134 19.1964,6.02788 35.92386,16.45609 51.03906,31.81865 l 7.6589,7.78413 -12.1463,11.20157 -12.1463,11.20156 -4.71036,-5.67073 c -10.1711,-12.24459 -30.75,-24.93613 -45.3803,-27.98708 -9.9847,-2.08218 -30.07576,-1.79357 -40.13023,0.57647 -23.16317,5.46004 -44.5903,24.57735 -55.72372,49.716781 -9.85613,22.2553 -9.37214,54.05558 1.12239,73.74534 7.5254,14.11909 22.58654,26.77448 39.60275,33.2769 9.50231,3.63113 30.11659,4.93761 40.37058,2.55859 16.70013,-3.8746 33.47763,-14.71327 41.05603,-26.5233 3.7586,-5.85718 9.4345,-20.46218 9.4345,-24.27635 0,-0.691 -11.7823,-1.21454 -27.3333,-1.21454 -15.0334,0 -27.33338,-0.5046 -27.33338,-1.12133 0,-1.97762 2.76366,-23.43718 3.41862,-26.54534 l 0.63218,-3 h 45.36358 45.36346 l -0.8521,10.33334 c -1.6625,20.1622 -5.5891,36.22169 -12.1436,49.66666 -5.1486,10.56091 -8.082,14.57597 -17.64526,24.15156 -9.3146,9.3265 -13.6001,12.50748 -22.8035,16.92621 -18.3425,8.8065 -28.4379,11.13864 -50.66672,11.7045 -14.15056,0.36023 -21.83536,-0.0641 -28.66666,-1.58279 z M 38.954961,217.98235 c 74.930999,-75.88082 93.509819,-95.39589 97.830569,-102.76061 11.16012,-19.022401 10.85585,-40.982191 -0.71822,-51.835331 -13.1603,-12.34057 -39.905928,-11.0865 -52.759408,2.47383 -4.19842,4.4293 -9.83627,16.30817 -11.13222,23.45544 l -0.90661,5 h -16.51828 c -9.08505,0 -16.518281,-0.32529 -16.518281,-0.72288 0,-4.65511 5.08721,-23.10979 8.143411,-29.54154 11.29827,-23.77714 32.80931,-35.24267 66.523258,-35.45734 13.20046,-0.0841 16.82957,0.3972 26.08989,3.45983 25.90259,8.56666 39.62664,27.32262 39.70434,54.26193 0.0554,19.214071 -6.74579,36.366911 -21.67568,54.666671 -10.27476,12.5939 -39.46459,42.75668 -58.520518,60.47111 l -12.40196,11.52889 h 55.092798 55.09281 l 11.75903,-88.33334 c 6.46747,-48.583331 12.0886,-89.750901 12.49139,-91.483491 l 0.73236,-3.15015 40.81777,0.70318 c 51.82797,0.89286 62.2055,2.70682 80.1511,14.01016 26.32605,16.58191 41.53134,46.5416 41.74576,82.253641 0.26938,44.86314 -20.53817,84.15032 -54.04536,102.0442 -24.32846,12.99215 -27.1863,13.19752 -184.35355,13.24755 l -130.653149,0.0416 z m 250.145509,-8.32337 c 14.92401,-2.55682 26.74414,-8.67087 37.14363,-19.21282 14.96947,-15.17454 22.61566,-34.82804 22.61566,-58.13048 0,-35.599871 -17.67266,-60.598391 -48.08467,-68.017241 -4.69842,-1.14616 -17.92509,-2.44842 -29.39262,-2.89393 l -20.85004,-0.81001 -0.82273,5.19392 c -0.45251,2.85666 -4.71019,35.193931 -9.46152,71.860591 -4.75133,36.66667 -8.92771,68.28735 -9.28086,70.26819 -0.62759,3.52027 -0.47019,3.61391 6.97822,4.15129 11.79063,0.85065 39.83623,-0.47036 51.15493,-2.40951 z m 101.13204,30.58856 c 0,-2.59594 26.51632,-202.845011 27.40123,-206.931861 l 0.64958,-3 h 59.45247 59.45248 l -0.70715,3 c -0.38893,1.65 -1.12494,8.25 -1.63558,14.66667 l -0.92843,11.66666 h -43.15023 -43.15023 l -0.64939,3 c -0.35717,1.65 -1.60356,11.4 -2.76977,21.66667 -1.1662,10.26667 -2.46209,20.916671 -2.87975,23.666671 l -0.75938,5 h 42.83708 c 33.38614,0 42.83485,0.36771 42.827,1.66666 -0.01,1.57384 -1.78539,13.82702 -3.37908,23.31494 l -0.72478,4.31494 -42.94303,0.35173 -42.94304,0.35173 -4.25579,32.66667 c -2.34069,17.96666 -4.29069,33.41666 -4.33334,34.33333 -0.0605,1.30023 9.30334,1.66667 42.58913,1.66667 39.74987,0 42.66598,0.15951 42.6566,2.33333 -0.009,2.13527 -1.57448,13.24123 -3.38253,24 l -0.72823,4.33334 h -59.27292 c -52.66618,0 -59.27292,-0.23053 -59.27292,-2.06815 z m 149.33334,-0.13177 c 0,-2.85705 25.19819,-202.697161 26.07578,-206.800091 0.51403,-2.40317 1.55135,-3 5.21419,-3 4.36445,0 7.07808,2.86025 59.64126,62.86383 52.8207,60.297551 65.06147,74.570771 71.19726,83.018761 l 2.79515,3.84849 0.75233,-13.86554 c 0.41378,-7.62605 4.55596,-41.31535 9.20484,-74.865121 l 8.45252,-60.99959 15.66667,-4.2e-4 c 14.82444,-3.9e-4 15.66666,0.14424 15.66666,2.69023 0,2.55068 -25.81337,195.737051 -27.39885,205.052071 -0.6915,4.06266 -1.09772,4.37718 -5.16627,4 -4.00585,-0.37137 -9.70482,-6.47436 -61.39056,-65.74271 -31.33613,-35.93333 -60.06543,-69.48197 -63.84288,-74.55253 l -6.8681,-9.219191 -1.15595,10.552531 c -0.63577,5.80389 -4.86637,39.35253 -9.40133,74.55253 l -8.24538,64 -15.59867,0.37565 c -13.98624,0.33681 -15.59867,0.13949 -15.59867,-1.9089 z m 441.29724,0.53325 c -0.02,-0.91667 6.128,-48.61667 13.6618,-106.00001 L 1008.2227,30.315679 h 17.0049 c 11.064,0 17.0049,0.4926 17.0049,1.40998 0,1.74192 -26.3503,200.250751 -27.3788,206.256691 l -0.742,4.33334 h -16.60631 c -12.3769,0 -16.6154,-0.42448 -16.6423,-1.66667 z m 63.38271,-2.58585 c 1.2951,-8.27164 28.6534,-205.611791 28.6534,-206.681841 0,-0.58611 7.2,-1.06565 16,-1.06565 8.8,0 16,0.22261 16,0.49468 0,0.27207 -3.6117,27.12207 -8.0261,59.66667 -7.0379,51.886911 -11.6803,80.362391 -14.2934,87.671951 -0.426,1.19169 3.6734,-2.0333 9.1098,-7.16663 5.4364,-5.13333 27.8825,-24.95268 49.8803,-44.04299 21.9979,-19.09031 55.8109,-48.490311 75.1401,-65.333341 31.2128,-27.19801 35.7162,-30.66913 40.2583,-31.03 4.6938,-0.37293 5.0702,-0.15372 4.5784,2.66666 -0.2946,1.69015 -2.346,15.673 -4.5585,31.073 -2.2126,15.4 -6.4427,44.200001 -9.4003,64.000001 -6.1348,41.07063 -12.9318,86.99938 -15.1935,102.66667 l -1.5399,10.66667 -15.6443,0.37565 c -8.6043,0.2066 -15.6442,-0.1026 -15.6442,-0.68712 0,-1.92707 17.2891,-120.74975 19.4493,-133.66921 1.1631,-6.95604 2.3982,-13.106041 2.7447,-13.666671 1.6532,-2.6748 -1.3529,-0.27219 -9.7181,7.767241 -5.0284,4.83261 -15.4426,14.2747 -23.1426,20.98243 -7.7,6.70772 -14.6556,12.80376 -15.4568,13.54676 -0.8013,0.743 -28.2952,24.75092 -61.0977,53.35092 -50.517,44.04501 -60.3407,52.06336 -64.2154,52.41415 -4.4891,0.40642 -4.5617,0.33167 -3.8835,-4 z m 215.3201,1.52165 c 0,-1.39009 2.048,-16.28918 3.4252,-24.91741 l 0.6887,-4.31493 42.8997,-0.35173 42.8998,-0.35173 4.721,-33.76671 c 2.5966,-18.57168 4.4661,-34.02168 4.1544,-34.33333 -0.3116,-0.31165 -19.678,-0.56663 -43.0365,-0.56663 h -42.4698 l 0.6115,-3 c 0.3363,-1.65 0.9687,-6.3 1.4052,-10.33334 0.4366,-4.03333 1.1396,-9.28333 1.5623,-11.66666 l 0.7686,-4.33334 h 42.4929 42.4928 l 0.6285,-3 c 0.3457,-1.65 1.8739,-11.400001 3.3961,-21.666661 1.5222,-10.26667 3.1036,-20.91667 3.5141,-23.66667 l 0.7465,-5 h -43.2582 -43.2582 l 1.7595,-10.33333 c 0.9677,-5.68334 2.1083,-12.28334 2.5347,-14.66667 l 0.7753,-4.33333 h 59.3789 59.3788 l -0.7012,3.66666 c -0.6276,3.28173 -1.4899,9.04252 -2.844,19 -0.2493,1.83334 -0.7962,5.73334 -1.2154,8.66667 -0.4191,2.93333 -1.1497,8.33333 -1.6235,12 -0.4739,3.66667 -5.7526,42.966671 -11.7306,87.333341 l -10.869,80.66667 -59.6141,0.34706 c -41.6266,0.24234 -59.614,-0.0829 -59.614,-1.07793 z"  id="path1" /> </g> </svg> </a><h2><svg style="max-height:1.5em; vertical-align:middle; padding:.5em" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc. --><path d="M392.8 1.2c-17-4.9-34.7 5-39.6 22l-128 448c-4.9 17 5 34.7 22 39.6s34.7-5 39.6-22l128-448c4.9-17-5-34.7-22-39.6zm80.6 120.1c-12.5 12.5-12.5 32.8 0 45.3L562.7 256l-89.4 89.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l112-112c12.5-12.5 12.5-32.8 0-45.3l-112-112c-12.5-12.5-32.8-12.5-45.3 0zm-306.7 0c-12.5-12.5-32.8-12.5-45.3 0l-112 112c-12.5 12.5-12.5 32.8 0 45.3l112 112c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256l89.4-89.4c12.5-12.5 12.5-32.8 0-45.3z"/></svg>Fizz X</h2><ul>
+<a href="#">index</a><li> <a href='#fizz'>fizz</a>
+<li> <a href='#partition'>partition</a>
+<li> <a href='#shape'>shape</a>
+</ul>
+</nav>
+</div>
+</html>

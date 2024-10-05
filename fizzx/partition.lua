@@ -1,3 +1,7 @@
+--- Broad-phase partitioning code
+-- @module part
+-- @alias partition
+
 local grid = {}
 local default = {}
 local lookup = {}

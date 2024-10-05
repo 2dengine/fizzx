@@ -16,7 +16,7 @@ local termjumpT = maxjumpT - (2*(maxjumpH - minjumpH)/(initjumpV + termjumpV))
 local jumpTerm = termjumpV
 
 -- fizz module
-fizz = require("fizzx.fizz")
+fizz = require("fizzx")
 fizz.setGravity(0, g)
 
 -- give us some stuff to play with

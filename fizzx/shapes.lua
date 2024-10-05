@@ -1,4 +1,6 @@
--- Common functions
+--- Shapes intersection code
+-- @module shapes
+-- @alias shape
 
 local abs = math.abs
 local sqrt = math.sqrt
@@ -9,17 +11,31 @@ local shape = {}
 
 shape.create = {}
 
--- rects have a center position and half-width/height extents
+--- Creates a new rectangle shape
+-- @tparam number x Center x-position 
+-- @tparam number y Center y-position 
+-- @tparam number hw Half-width extent
+-- @tparam number hw Half-height extent
+-- @treturn table New shape
 function shape.create.rect(x, y, hw, hh)
   return { shape = "rect", x = x, y = y, hw = hw, hh = hh }
 end
 
--- circles have a center position and radius
+--- Creates a new circle shape
+-- @tparam number x Center x-position 
+-- @tparam number y Center y-position 
+-- @tparam number r Radius
+-- @treturn table New shape
 function shape.create.circle(x, y, r)
   return { shape = "circle", x = x, y = y, r = r }
 end
 
--- line shapes have a starting and an ending point
+--- Creates a new line segment shape
+-- @tparam number x Starting point x-position 
+-- @tparam number y Starting point y-position 
+-- @tparam number x2 Ending point x-position
+-- @tparam number y2 Ending point x-position
+-- @treturn table New shape
 function shape.create.line(x, y, x2, y2)
   return { shape = "line", x = x, y = y, x2 = x2, y2 = y2 }
 end
@@ -30,7 +46,13 @@ shape.tests = {}
 
 shape.tests.rect = {}
 
--- tests two rectangles
+--- Tests two rectangles for intersection
+-- @tparam table a First rectangle shape
+-- @tparam table b Second rectangle shape
+-- @tparam number dt Time interval
+-- @treturn number Penetration normal x-component
+-- @treturn number Penetration normal y-component
+-- @treturn number Penetration depth
 function shape.tests.rect.rect(a, b, dt)
   -- vector between the centers of the rects
   local dx, dy = a.x - b.x, a.y - b.y
@@ -93,7 +115,13 @@ function shape.tests.rect.rect(a, b, dt)
   end
 end
 
--- tests rectangle versus circle
+--- Tests a rectangle versus a circle for intersection
+-- @tparam table a Rectangle shape
+-- @tparam table b Circle shape
+-- @tparam number dt Time interval
+-- @treturn number Penetration normal x-component
+-- @treturn number Penetration normal y-component
+-- @treturn number Penetration depth
 function shape.tests.rect.circle(a, b, dt)
   -- vector between the centers of the two shapes
   local dx, dy = a.x - b.x, a.y - b.y
@@ -162,7 +190,13 @@ function shape.tests.rect.circle(a, b, dt)
   return sx/pen, sy/pen, pen
 end
 
--- tests rectangle versus line segment
+--- Tests a rectangle versus a line segment for intersection
+-- @tparam table a Rectangle shape
+-- @tparam table b Line segment shape
+-- @tparam number dt Time interval
+-- @treturn number Penetration normal x-component
+-- @treturn number Penetration normal y-component
+-- @treturn number Penetration depth
 function shape.tests.rect.line(a, b, dt)
   -- normalize segment
   local x1, y1 = b.x, b.y
@@ -228,7 +262,13 @@ end
 
 shape.tests.circle = {}
 
--- tests two circles
+--- Tests two circles for intersection
+-- @tparam table a Circle shape
+-- @tparam table b Circle shape
+-- @tparam number dt Time interval
+-- @treturn number Penetration normal x-component
+-- @treturn number Penetration normal y-component
+-- @treturn number Penetration depth
 function shape.tests.circle.circle(a, b, dt)
   -- vector between the centers of the circles
   local dx, dy = a.x - b.x, a.y - b.y
@@ -255,7 +295,13 @@ function shape.tests.circle.circle(a, b, dt)
   return nx, ny, pen
 end
 
--- tests circle versus line segment
+--- Tests a circle versus a line segment for intersection
+-- @tparam table a Circle shape
+-- @tparam table b Line segment shape
+-- @tparam number dt Time interval
+-- @treturn number Penetration normal x-component
+-- @treturn number Penetration normal y-component
+-- @treturn number Penetration depth
 function shape.tests.circle.line(a, b, dt)
   -- normalize segment
   local x1, y1 = b.x, b.y
@@ -307,13 +353,22 @@ end
 
 shape.tests.line = {}
 
--- tests two line segments
+--- Tests two line segments for intersection
+-- @tparam table a First line segment
+-- @tparam table b Second line segment
+-- @tparam number dt Time interval
 function shape.tests.line.line(a, b, dt)
   -- assert(false, "dynamic line collision unsupported")
 end
 
--- tests any two shapes
--- returns normalized separation vector and penetration
+
+--- Tests two shapes for intersection
+-- @tparam table a First shape
+-- @tparam table b Second shape
+-- @tparam number dt Time interval
+-- @treturn number Penetration normal x-component
+-- @treturn number Penetration normal y-component
+-- @treturn number Penetration depth
 local tests = shape.tests
 function shape.test(a, b, dt)
   local sa = a.shape
@@ -337,6 +392,9 @@ end
 
 --- Utility functions
 
+--- Tests two shapes for intersection
+-- @tparam table shape Shape
+-- @treturn number Total area of the shape
 local pi = math.pi
 function shape.area(s)
   local t = s.shape
@@ -349,7 +407,12 @@ function shape.area(s)
   return a
 end
 
--- returns center position and half width/height extents for any shape
+--- Returns center position and half width/height extents for any shape
+-- @tparam table shape Shape
+-- @treturn number X-position
+-- @treturn number Y-position
+-- @treturn number Width extent
+-- @treturn number Height extent
 function shape.bounds(s)
   local x, y = s.x, s.y
   local hw, hh
@@ -376,7 +439,10 @@ function shape.bounds(s)
   return x, y, hw, hh
 end
 
--- changes the position of a shape
+--- Changes the position of a shape
+-- @tparam table shape Shape
+-- @tparam number dx Change in x-position
+-- @tparam number dy Change in y-position
 function shape.translate(a, dx, dy)
   a.x = a.x + dx
   a.y = a.y + dy

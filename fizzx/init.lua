@@ -1,19 +1,21 @@
--- Common functions
+--- The main module that you need to require in your game
+-- @module fizz
+-- @alias fizz
+local lib = (...)
+lib = lib:gsub('%.init$', '')
 
 local tremove = table.remove
 local sqrt = math.sqrt
 
 -- Partitioning
-
-local path = (...):match("(.-)[^%.]+$")
-local part = require(path.."partition")
+local part = require(lib..".partition")
 local qinsert = part.insert
 local qremove = part.remove
 local qcheck = part.check
 
 -- Collisions
 
-local shape = require(path.."shapes")
+local shape = require(lib..".shapes")
 local screate = shape.create
 local sarea = shape.area
 local sbounds = shape.bounds
@@ -199,7 +201,10 @@ end
 
 local fizz = {}
 
--- updates the simulation
+--- Updates the simulation.
+-- To avoid tunneling, you want to use a fixed time step.
+-- @tparam number delta Delta value
+-- @tparam number iterations Number of iterations
 function fizz.update(dt, it)
   it = it or 1
   -- track the number of collision checks (optional)
@@ -243,29 +248,46 @@ function fizz.update(dt, it)
   end
 end
 
--- gets the global gravity
+--- Gets the global gravity
+-- @treturn number X-component of gravity
+-- @treturn number Y-component of gravity
 function fizz.getGravity()
   return gravityx, gravityy
 end
 
--- sets the global gravity
+-- Sets the global gravity
+-- @tparam number gx X-component of gravity
+-- @tparam number gy Y-component of gravity
 function fizz.setGravity(x, y)
   gravityx, gravityy = x, y
 end
 
--- static shapes do not move or respond to collisions
+--- Creates a static shape.
+-- Static shapes are immovable and do not move or respond to collisions
+-- @tparam tstring shape Shape type: "rect", "circle" or "line"
+-- @tparam arg Center position and extents for rectangles, radius for circles or starting and ending point for lines
+-- @treturn shape New shape object
 function fizz.addStatic(shape, ...)
   return addShapeType(statics, shape, ...)
 end
 
--- kinematic shapes move only when assigned a velocity
+--- Creates a kinematic shape.
+-- Kinematic shapes have a velocity but do not respond to collisions.
+-- This can be useful for simulating moving platforms.
+-- @tparam tstring shape Shape type: "rect", "circle" or "line"
+-- @tparam arg Center position and extents for rectangles, radius for circles or starting and ending point for lines
+-- @treturn shape New shape object
 function fizz.addKinematic(shape, ...)
   local s = addShapeType(kinematics, shape, ...)
   s.xv, s.yv = 0, 0
   return s
 end
 
--- dynamic shapes are affected by gravity and collisions
+--- Creates a dynamic shape.
+-- Dynamic shapes can move and collide with other shapes.
+-- @tparam tstring shape Shape type: "rect", "circle" or "line"
+-- @tparam arg Center position and extents for rectangles, radius for circles or starting and ending point for lines
+-- @treturn shape New shape object
 function fizz.addDynamic(shape, ...)
   local s = addShapeType(dynamics, shape, ...)
   s.friction = 1
@@ -278,12 +300,14 @@ function fizz.addDynamic(shape, ...)
   return s
 end
 
---- Adjusts the mass of shape.
+-- Sets the mass of a shape based on its area.
 -- @tparam table shape Shape
 -- @tparam number density Density
+-- @treturn number Mass
 function fizz.setDensity(s, d)
   local m = sarea(s)*d
   fizz.setMass(s, m)
+  return m
 end
 
 --- Sets the mass of shape.
@@ -300,6 +324,7 @@ end
 
 --- Gets the mass of shape.
 -- @tparam table shape Shape
+-- @tparam number mass Mass value
 -- @treturn number Mass
 function fizz.getMass(s, m)
   return s.mass
@@ -320,21 +345,23 @@ function fizz.removeShape(s)
 end
 
 --- Gets the position of a shape (starting point for line shapes).
+-- @tparam table shape Shape
 -- @treturn number X position
 -- @treturn number Y position
 function fizz.getPosition(a)
   return a.x, a.y
 end
 
---- Sets the position of a shape.
+--- Moves the shape to a given position.
+-- This function is used to "teleport" shapes.
 -- @tparam table shape Shape
--- @treturn number X position
--- @treturn number Y position
+-- @tparam number X position
+-- @tparam number Y position
 function fizz.setPosition(a, x, y)
   changePosition(a, x - a.x, y - a.y)
 end
 
---- Gets the velocity of a shape.
+--- Returns the velocity of a shape.
 -- @tparam table shape Shape
 -- @treturn number X velocity
 -- @treturn number Y velocity
@@ -351,7 +378,8 @@ function fizz.setVelocity(a, xv, yv)
   a.yv = yv
 end
 
---- Gets the separation of a shape for the last frame.
+--- Returns the accumulated separation vector of a shape for the last collision step.
+-- @tparam table shape Shape
 -- @treturn number X separation
 -- @treturn number Y separation
 function fizz.getDisplacement(a)

@@ -1,7 +1,31 @@
-# Fizz documentation 
-Fizz is a lightweight collision library in Lua.
-Fizz is designed specifically for old-school platformers and overhead action games.
+# Fizz X 
+Fizz is a lightweight collision library for the [Lua](https://lua.org) programming language.
+Fizz was developed for educational purposes, but is also useful in environments where external option like [Box2D](https://box2d.org) are unavailable.
 
+The source code available on [GitHub](https://github.com/2dengine/fizzx) and the official documentation is from [2dengine.com](https://2dengine.com/doc/fizzx.html)
+
+
+# Example
+```Lua
+fizz = require("fizzx")
+fizz.setGravity(0, 100)
+
+ball = fizz.addDynamic('circle', 300, 100, 10)
+wall = fizz.addStatic('rect', 300, 400, 200, 10)
+
+ball.bounce = 0.5
+
+function love.update(dt)
+  fizz.update(dt)
+end
+
+function love.draw()
+  love.graphics.circle("fill", ball.x, ball.y, ball.r)
+  love.graphics.rectangle("fill", wall.x - wall.hw, wall.y - wall.hh, wall.hw*2, wall.hh*2)
+end
+```
+
+# Shapes
 Fizz supports three different shape types: circles, rectangles and line segments.
 Note that rectangles are represented by a center point and half-width and half-height extents.
 Rectangles are always axis-aligned and cannot have rotation.
@@ -17,76 +41,6 @@ Kinematic shapes can be used to simulate moving platforms and doors.
 Dynamic shapes respond to collisions and gravity.
 Dynamic shapes can be used to simulate the moving objects in your game.
 
-Fizz uses flat grid partitioning to reduce the number of collision tests.
-You can adjust the default grid cell size if the performance is not up to par.
-
-# Files
-## fizz.lua
-The main module that you need to require in your game:
-
-    fizz = require("fizzx.fizz")
-
-## shapes.lua
-Shapes intersection code.
-
-## partition.lua
-Broad-phase partitioning code.
-
-# Functions
-## fizz.setGravity(x, y)
-Sets the global gravity.
-
-## fizz.getGravity()
-Returns the global gravity.
-
-## fizz.addStatic("rect", x, y, hw, hh)
-## fizz.addStatic("circle", x, y, r)
-## fizz.addStatic("line", x, y, x2, y2)
-Creates a static shape.
-Static shapes are immovable.
-
-## fizz.addKinematic("rect", x, y, hw, hh)
-## fizz.addKinematic("circle", x, y, r)
-## fizz.addKinematic("line", x, y, x2, y2)
-Creates a kinematic shape.
-Kinematic shapes have a velocity but do not respond to collisions.
-This can be useful for simulating moving platforms.
-
-## fizz.addDynamic("rect", x, y, hw, hh)
-## fizz.addDynamic("circle", x, y, r)
-Creates a dynamic shape.
-Dynamic shapes can move and collide with other shapes.
-
-## fizz.removeShape(s)
-Removes a shape from the simulation.
-
-## fizz.setDensity(s, d)
-Sets the mass of a shape based on density.
-
-## fizz.setMass(s, m)
-Sets the mass of a shape based on mass.
-
-## fizz.setPosition(s, x, y)
-Moves the shape to a given position.
-This function is used to "teleport" shapes.
-
-## fizz.getPosition(s, x, y)
-Returns the position of a shape.
-
-## fizz.getVelocity(s)
-Returns the velocity of a shape.
-
-## fizz.setVelocity(s, xv, yv)
-Sets the velocity of a shape.
-
-## fizz.getDisplacement(s)
-Returns the accumulated separation vector of a shape for the last collision step.
-
-## fizz.update(dt)
-Updates the simulation.
-To avoid tunneling, you want to use a constant delta value.
-
-# Shapes
 ## shape.x, shape.y
 Center position of circle and rectangle shapes.
 Starting point for line segments.
@@ -145,76 +99,56 @@ If you want to simulate torque, I would suggest a more sophisticated library, li
 For simple platform games, you could always draw or animate your objects as if they are rotating.
 
 ## Tunneling
-![Tunneling](https://bytebucket.org/itraykov/fizzx/raw/master/images/tunnel.gif)
-
 Since the library uses non-continuous collision detection, it's possible for shapes that move at a high velocity to "tunnel" or pass through other shapes.
 This problem can be accommodated in a few ways.
 First, make sure fizz.maxVelocity is defined within a reasonable range.
 Second, set up your game loop to update the simulation with a constant time step.
 This will make sure that the game will play the same on any machine.
 Here is an example of how to update the simulation with a constant time step:
+```Lua
+accum = 0
+step = 1/60
+function update(dt)
+  accum = accum + dt
+  while accum >= step do
+    fizz.update(step)
+    accum = accum - step
+  end
+end
+```
 
-      accum = 0
-      step = 1/60
-      function update(dt)
-        accum = accum + dt
-        while accum >= step do
-          fizz.update(step)
-          accum = accum - step
-        end
-      end
+## Partitioning
+Fizz uses flat grid partitioning to reduce the number of collision tests.
+You can adjust the default grid cell size if the performance is not up to par.
 
-## Repartitioning
 Manually changing the position of shapes affects the partitioning system.
 After modifying these values, you have to repartition the particular shape, for example:
-
-      shape.x = 100
-      shape.y = 100
-      fizz.repartition(shape)
-
-An alternative approach is to use the built in functions:
-
-      fizz.positionShape(100, 100)
-
+```Lua
+shape.x = 100
+shape.y = 100
+fizz.repartition(shape)
+```
+An alternative approach is to use the built-in functions:
+```Lua
+fizz.positionShape(100, 100)
+```
 Note that changing the size of shapes affects the partition system as well:
-
-      circle.r = circle.r + 5
-      fizz.repartition(circle)
-
+```Lua
+circle.r = circle.r + 5
+fizz.repartition(circle)
+```
 If you explicitly disable partitioning, then you can ignore this limitation.
 
 ## Stacking
-![Stacking](https://bytebucket.org/itraykov/fizzx/raw/master/images/stack.gif)
-
 Piling two or more dynamic shapes results in jittery behavior, because there is no simple way to figure out which collision pair should be resolved first.
 This may cause one shape to overlap another in the stack even after their collisions have been resolved.
 
 ## Ledges
-![Ledges](https://bytebucket.org/itraykov/fizzx/raw/master/images/ledge.gif)
-
 This issue occurs with rows of static rectangle shapes.
 When a dynamic shape is sliding on top of the row it may get "blocked" by the ledge between rects.
 The best solution is to use line segments to represent platforms.
 
-# License
-The MIT License (MIT)
+# Credits
+This library is based and builds upon the original work of [Taehl](https://github.com/Taehl)
 
-Copyright (c) 2014
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Please support our work so we can release more free software in the future.

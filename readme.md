@@ -1,8 +1,8 @@
 # Fizz X 
-Fizz is a lightweight collision library for the [Lua](https://lua.org) programming language.
-Fizz was developed for educational purposes, but is also useful in environments where external option like [Box2D](https://box2d.org) are unavailable.
+Fizz is a 2D axis-aligned physics library for the [Lua](https://lua.org) programming language.
+Fizz is useful in environments where external option like [Box2D](https://box2d.org) are unavailable.
 
-The source code available on [GitHub](https://github.com/2dengine/fizzx) and the official documentation is on [2dengine.com](https://2dengine.com/doc/fizzx.html)
+The source code is available on [GitHub](https://github.com/2dengine/fizzx) and the official documentation is on [2dengine.com](https://2dengine.com/doc/fizzx.html)
 
 
 # Example
@@ -40,6 +40,8 @@ Kinematic shapes do not respond to collisions or gravity, but can be moved by ma
 Kinematic shapes can be used to simulate moving platforms and doors.
 Dynamic shapes respond to collisions and gravity.
 Dynamic shapes can be used to simulate the moving objects in your game.
+
+Shapes have the following properties:
 
 ## shape.x, shape.y
 Center position of circle and rectangle shapes.

@@ -2,7 +2,7 @@
 Fizz is a 2D axis-aligned physics library for the [Lua](https://lua.org) programming language.
 Fizz is useful in environments where external option like [Box2D](https://box2d.org) are unavailable.
 
-The source code is available on [GitHub](https://github.com/2dengine/fizzx) and the official documentation is on [2dengine.com](https://2dengine.com/doc/fizzx.html)
+The source code is available on [GitHub](https://github.com/2dengine/fizzx) and the official documentation is hosted on [2dengine.com](https://2dengine.com/doc/fizzx.html)
 
 
 # Example

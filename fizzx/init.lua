@@ -278,9 +278,9 @@ end
 -- @tparam arg Center position and extents for rectangles, radius for circles or starting and ending point for lines
 -- @treturn shape New shape object
 function fizz.addKinematic(s, ...)
-  local s = addShapeType(kinematics, s, ...)
-  s.xv, s.yv = 0, 0
-  return s
+  local o = addShapeType(kinematics, s, ...)
+  o.xv, o.yv = 0, 0
+  return o
 end
 
 --- Creates a dynamic shape.
@@ -289,15 +289,15 @@ end
 -- @tparam arg Center position and extents for rectangles, radius for circles or starting and ending point for lines
 -- @treturn shape New shape object
 function fizz.addDynamic(s, ...)
-  local s = addShapeType(dynamics, s, ...)
-  s.friction = 1
-  s.bounce = 0
-  s.damping = 0
-  s.gravity = 1
-  s.xv, s.yv = 0, 0
-  s.sx, s.sy = 0, 0
-  fizz.setDensity(s, 1)
-  return s
+  local o = addShapeType(dynamics, s, ...)
+  o.friction = 1
+  o.bounce = 0
+  o.damping = 0
+  o.gravity = 1
+  o.xv, o.yv = 0, 0
+  o.sx, o.sy = 0, 0
+  fizz.setDensity(o, 1)
+  return o
 end
 
 -- Sets the mass of a shape based on its area.

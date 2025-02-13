@@ -219,13 +219,13 @@ end
 
 function love.draw()
   local lg = love.graphics
-  for i, v in ipairs(fizz.statics) do
+  for _, v in ipairs(fizz.statics) do
     drawObject(v, 127, 127, 127)
   end
-  for i, v in ipairs(fizz.dynamics) do
+  for _, v in ipairs(fizz.dynamics) do
     drawObject(v, 255, 127, 127)
   end
-  for i, v in ipairs(fizz.kinematics) do
+  for _, v in ipairs(fizz.kinematics) do
     drawObject(v, 255, 127, 255)
   end
   lg.setColor(255, 255, 255, 255)

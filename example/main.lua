@@ -20,6 +20,7 @@ local fizz = require("fizzx")
 fizz.setGravity(0, g)
 
 local player
+local platform
 
 -- give us some stuff to play with
 function love.load()
@@ -163,8 +164,8 @@ function love.load()
   end
 
   -- kinematic platform
-  k = fizz.addKinematic('rect', 16*tile, 10*tile, 30, 10)
-  k.yv = -50
+  platform = fizz.addKinematic('rect', 16*tile, 10*tile, 30, 10)
+  platform.yv = -50
 end
 
 -- update interval in seconds
@@ -194,8 +195,8 @@ function love.update(dt)
   end
   
   -- warp the kinematic platform
-  if k.y < -50 then
-    k.y = 300
+  if platform.y < -50 then
+    platform.y = 300
   end
 end
 

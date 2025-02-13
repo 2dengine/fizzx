@@ -11,7 +11,7 @@ local initjumpV = math.sqrt(2*gravity*maxjumpH)
 -- jump termination velocity
 local termjumpV = math.sqrt(initjumpV^2 + 2*-gravity*(maxjumpH - minjumpH))
 -- jump termination time
-local termjumpT = maxjumpT - (2*(maxjumpH - minjumpH)/(initjumpV + termjumpV))
+--local termjumpT = maxjumpT - (2*(maxjumpH - minjumpH)/(initjumpV + termjumpV))
 -- default jump termination
 local jumpTerm = termjumpV
 

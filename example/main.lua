@@ -19,6 +19,8 @@ local jumpTerm = termjumpV
 local fizz = require("fizzx")
 fizz.setGravity(0, g)
 
+local player
+
 -- give us some stuff to play with
 function love.load()
   -- tile size
@@ -95,12 +97,12 @@ function love.load()
   end
 
   -- player
-  p = fizz.addDynamic('rect', 3*tile, 10*tile, tile2/2, tile2/2)
-  p.friction = 0.15
+  player = fizz.addDynamic('rect', 3*tile, 10*tile, tile2/2, tile2/2)
+  player.friction = 0.15
   -- player flags
-  p.grounded = false
-  p.jumping = false
-  p.moving = false
+  player.grounded = false
+  player.jumping = false
+  player.moving = false
 
   -- callback for player collisions
   function p:onCollide(b, nx, ny, pen)
@@ -121,22 +123,22 @@ function love.load()
     local sx, sy = fizz.getDisplacement(p)
 
     -- something is pushing the player up?
-    p.grounded = false
+    player.grounded = false
     if sy < 0 then
-      p.grounded = true
-      p.jumping = false
+      player.grounded = true
+      player.jumping = false
     end
 
     -- running (horizontal movement)
-    p.moving = left or right
-    if p.moving then
+    player.moving = left or right
+    if player.moving then
       -- movement vector
       local move = 1000
       if left then
         move = -1000
       end
       -- slower movement while in the air
-      if not p.grounded then
+      if not player.grounded then
         move = move/8
       end
       -- add to player velocity
@@ -144,16 +146,16 @@ function love.load()
     end
 
     -- jumping (vertical movement)
-    if jump and not p.jumping and p.grounded then
+    if jump and not player.jumping and player.grounded then
       -- initiating a jump
-      p.jumping = true
+      player.jumping = true
       vy = -initjumpV
-    elseif not jump and p.jumping and not p.grounded then
+    elseif not jump and player.jumping and not player.grounded then
       -- terminating a jump
-      if p.yv < 0 and p.yv < -jumpTerm then
+      if player.yv < 0 and player.yv < -jumpTerm then
         vy = -jumpTerm
       end
-      p.jumping = false
+      player.jumping = false
     end
     
     -- update player velocity
@@ -166,11 +168,11 @@ function love.load()
 end
 
 -- update interval in seconds
-interval = 1/60
+local interval = 1/60
 -- maximum frame skip
-maxsteps = 5
+local maxsteps = 5
 -- accumulator
-accum = 0
+local accum = 0
 
 -- nothing too heavy
 function love.update(dt)
@@ -230,8 +232,8 @@ function love.draw()
   local mem = collectgarbage('count')
   mem = math.ceil(mem)
   love.graphics.print("memory:" .. mem, 0, 15)
-  love.graphics.print("grounded: " .. tostring(p.grounded), 0, 30)
-  love.graphics.print("jumping: " .. tostring(p.jumping), 0, 45)
+  love.graphics.print("grounded: " .. tostring(player.grounded), 0, 30)
+  love.graphics.print("jumping: " .. tostring(player.jumping), 0, 45)
   local jt = "instant"
   if jumpTerm > 0 then
     jt = "gradual"

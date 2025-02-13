@@ -200,7 +200,7 @@ function love.update(dt)
   end
 end
 
-function drawObject(v, r, g, b)
+local function drawObject(v, r, g, b)
   local lg = love.graphics
   if v.shape == 'rect' then
     local x, y, w, h = v.x, v.y, v.hw, v.hh

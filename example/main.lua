@@ -105,22 +105,22 @@ function love.load()
   player.moving = false
 
   -- callback for player collisions
-  function p:onCollide(b, nx, ny, pen)
+  function player:onCollide(b, nx, ny, pen)
     -- return false if you want to ignore the collision
     return true
   end
 
   -- process user input
-  function p:checkInput(dt)
+  function player:checkInput(dt)
     -- get user input
     local left = love.keyboard.isDown('left')
     local right = love.keyboard.isDown('right')
     local jump = love.keyboard.isDown('space')
 
     -- get player velocity
-    local vx, vy = fizz.getVelocity(p)
+    local vx, vy = fizz.getVelocity(player)
     -- get the player displacement
-    local sx, sy = fizz.getDisplacement(p)
+    local sx, sy = fizz.getDisplacement(player)
 
     -- something is pushing the player up?
     player.grounded = false
@@ -181,7 +181,7 @@ function love.update(dt)
   accum = accum + dt
   while accum >= interval do
     -- handle player input
-    p:checkInput(interval)
+    player:checkInput(interval)
     
     -- update the simulation
     fizz.update(interval)

@@ -267,8 +267,8 @@ end
 -- @tparam tstring shape Shape type: "rect", "circle" or "line"
 -- @tparam arg Center position and extents for rectangles, radius for circles or starting and ending point for lines
 -- @treturn shape New shape object
-function fizz.addStatic(shape, ...)
-  return addShapeType(statics, shape, ...)
+function fizz.addStatic(s, ...)
+  return addShapeType(statics, s, ...)
 end
 
 --- Creates a kinematic shape.
@@ -277,8 +277,8 @@ end
 -- @tparam tstring shape Shape type: "rect", "circle" or "line"
 -- @tparam arg Center position and extents for rectangles, radius for circles or starting and ending point for lines
 -- @treturn shape New shape object
-function fizz.addKinematic(shape, ...)
-  local s = addShapeType(kinematics, shape, ...)
+function fizz.addKinematic(s, ...)
+  local s = addShapeType(kinematics, s, ...)
   s.xv, s.yv = 0, 0
   return s
 end
@@ -288,8 +288,8 @@ end
 -- @tparam tstring shape Shape type: "rect", "circle" or "line"
 -- @tparam arg Center position and extents for rectangles, radius for circles or starting and ending point for lines
 -- @treturn shape New shape object
-function fizz.addDynamic(shape, ...)
-  local s = addShapeType(dynamics, shape, ...)
+function fizz.addDynamic(s, ...)
+  local s = addShapeType(dynamics, s, ...)
   s.friction = 1
   s.bounce = 0
   s.damping = 0

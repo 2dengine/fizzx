@@ -5,11 +5,11 @@ local minjumpH = 16*1
 -- jump time to apex
 local maxjumpT = 0.4
 -- gravity
-local g = (2*maxjumpH)/(maxjumpT^2)
+local gravity = (2*maxjumpH)/(maxjumpT^2)
 -- initial jump velocity
-local initjumpV = math.sqrt(2*g*maxjumpH)
+local initjumpV = math.sqrt(2*gravity*maxjumpH)
 -- jump termination velocity
-local termjumpV = math.sqrt(initjumpV^2 + 2*-g*(maxjumpH - minjumpH))
+local termjumpV = math.sqrt(initjumpV^2 + 2*-gravity*(maxjumpH - minjumpH))
 -- jump termination time
 local termjumpT = maxjumpT - (2*(maxjumpH - minjumpH)/(initjumpV + termjumpV))
 -- default jump termination
@@ -17,7 +17,7 @@ local jumpTerm = termjumpV
 
 -- fizz module
 local fizz = require("fizzx")
-fizz.setGravity(0, g)
+fizz.setGravity(0, gravity)
 
 local player
 local platform

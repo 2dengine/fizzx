@@ -159,7 +159,7 @@ function love.load()
     end
     
     -- update player velocity
-    fizz.setVelocity(p, vx, vy)
+    fizz.setVelocity(player, vx, vy)
   end
 
   -- kinematic platform

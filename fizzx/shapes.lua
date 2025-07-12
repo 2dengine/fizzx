@@ -1,3 +1,30 @@
+--[[
+This file is part of the Fizz X library.
+https://2dengine.com/doc/fizzx.html
+
+MIT License
+
+Copyright (c) 2012 2dengine LLC
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+]]
+
 --- Shapes intersection code
 -- @module shapes
 -- @alias shape
@@ -11,7 +38,7 @@ local shape = {}
 
 shape.create = {}
 
---- Creates a new rectangle shape
+--- Creates a new rectangle shape.
 -- @tparam number x Center x-position 
 -- @tparam number y Center y-position 
 -- @tparam number hw Half-width extent
@@ -21,7 +48,7 @@ function shape.create.rect(x, y, hw, hh)
   return { shape = "rect", x = x, y = y, hw = hw, hh = hh }
 end
 
---- Creates a new circle shape
+--- Creates a new circle shape.
 -- @tparam number x Center x-position 
 -- @tparam number y Center y-position 
 -- @tparam number r Radius
@@ -30,7 +57,7 @@ function shape.create.circle(x, y, r)
   return { shape = "circle", x = x, y = y, r = r }
 end
 
---- Creates a new line segment shape
+--- Creates a new line segment shape.
 -- @tparam number x Starting point x-position 
 -- @tparam number y Starting point y-position 
 -- @tparam number x2 Ending point x-position
@@ -46,7 +73,7 @@ shape.tests = {}
 
 shape.tests.rect = {}
 
---- Tests two rectangles for intersection
+--- Tests if two rectangles intersect.
 -- @tparam table a First rectangle shape
 -- @tparam table b Second rectangle shape
 -- @tparam number dt Time interval
@@ -115,7 +142,7 @@ function shape.tests.rect.rect(a, b, dt)
   end
 end
 
---- Tests a rectangle versus a circle for intersection
+--- Tests if a rectangle and a circle intersect.
 -- @tparam table a Rectangle shape
 -- @tparam table b Circle shape
 -- @tparam number dt Time interval
@@ -190,7 +217,7 @@ function shape.tests.rect.circle(a, b, dt)
   return sx/pen, sy/pen, pen
 end
 
---- Tests a rectangle versus a line segment for intersection
+--- Tests if a rectangle and a line segment intersect.
 -- @tparam table a Rectangle shape
 -- @tparam table b Line segment shape
 -- @tparam number dt Time interval
@@ -262,7 +289,7 @@ end
 
 shape.tests.circle = {}
 
---- Tests two circles for intersection
+--- Tests if two circles intersect.
 -- @tparam table a Circle shape
 -- @tparam table b Circle shape
 -- @tparam number dt Time interval
@@ -295,7 +322,7 @@ function shape.tests.circle.circle(a, b, dt)
   return nx, ny, pen
 end
 
---- Tests a circle versus a line segment for intersection
+--- Tests if a circle and line segment intersect.
 -- @tparam table a Circle shape
 -- @tparam table b Line segment shape
 -- @tparam number dt Time interval
@@ -353,7 +380,7 @@ end
 
 shape.tests.line = {}
 
---- Tests two line segments for intersection
+--- Tests if two line segments intersect.
 -- @tparam table a First line segment
 -- @tparam table b Second line segment
 -- @tparam number dt Time interval
@@ -362,14 +389,14 @@ function shape.tests.line.line(a, b, dt)
 end
 
 
---- Tests two shapes for intersection
+local tests = shape.tests
+--- Tests if two arbitrary shapes intersect.
 -- @tparam table a First shape
 -- @tparam table b Second shape
 -- @tparam number dt Time interval
 -- @treturn number Penetration normal x-component
 -- @treturn number Penetration normal y-component
 -- @treturn number Penetration depth
-local tests = shape.tests
 function shape.test(a, b, dt)
   local sa = a.shape
   local sb = b.shape
@@ -392,10 +419,10 @@ end
 
 --- Utility functions
 
---- Tests two shapes for intersection
+local pi = math.pi
+--- Finds the total area of a specific shape.
 -- @tparam table shape Shape
 -- @treturn number Total area of the shape
-local pi = math.pi
 function shape.area(s)
   local t = s.shape
   local a = 0
@@ -407,7 +434,7 @@ function shape.area(s)
   return a
 end
 
---- Returns center position and half width/height extents for any shape
+--- Returns the position and half width/height extents of a specific shape.
 -- @tparam table shape Shape
 -- @treturn number X-position
 -- @treturn number Y-position
@@ -439,7 +466,7 @@ function shape.bounds(s)
   return x, y, hw, hh
 end
 
---- Changes the position of a shape
+--- Changes the position of a specific shape.
 -- @tparam table shape Shape
 -- @tparam number dx Change in x-position
 -- @tparam number dy Change in y-position

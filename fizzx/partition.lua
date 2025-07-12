@@ -1,3 +1,30 @@
+--[[
+This file is part of the Fizz X library.
+https://2dengine.com/doc/fizzx.html
+
+MIT License
+
+Copyright (c) 2012 2dengine LLC
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+]]
+
 --- Broad-phase partitioning code
 -- @module part
 -- @alias partition
@@ -39,6 +66,12 @@ end
 
 local part = {}
 
+--- Inserts a shape in the partitioned space.
+-- @tparam Shape shape Shape
+-- @tparam number x X-position
+-- @tparam number y Y-position
+-- @tparam number hw Half-width extents
+-- @tparam number hh Half-height extents
 function part.insert(shape, x, y, hw, hh)
   local new = getCell(x, y, hw, hh)
   local cell = lookup[shape]
@@ -56,6 +89,8 @@ function part.insert(shape, x, y, hw, hh)
   end
 end
 
+--- Removes a specific shape from the partitioned space.
+-- @tparam Shape shape Shape
 function part.remove(shape)
   local cell = lookup[shape]
   local meta = metadata[cell]
@@ -69,10 +104,14 @@ function part.remove(shape)
   lookup[shape] = nil
 end
 
-function part.check(shape, ...)
+--- Checks if a shape intersects with other shapes.
+-- @tparam Shape shape Shape
+-- @tparam function func Callback function
+-- @tparam arguments ... Additional arguments passed to the callback function
+function part.check(shape, func, ...)
   local cell = lookup[shape]
   if cell == default then
-    checkAgainst(lookup, shape, ...)
+    checkAgainst(lookup, shape, func, ...)
   else
     local meta = metadata[cell]
     local i = meta.i
@@ -83,19 +122,23 @@ function part.check(shape, ...)
         if row then
           local cell2 = row[y]
           if cell2 then
-            checkAgainst(cell2, shape, ...)
+            checkAgainst(cell2, shape, func, ...)
           end
         end
       end
     end
-    checkAgainst(default, shape, ...)
+    checkAgainst(default, shape, func, ...)
   end
 end
 
+--- Sets the current cell size of the partitioned space.
+-- @tparam number cellsize Partition cell size
 function part.setCellsize(cellsize)
   size = cellsize
 end
 
+--- Returns the current cell size of the partitioned space.
+-- @treturn number Partition cell size
 function part.getCellsize()
   return size
 end

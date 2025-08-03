@@ -2,7 +2,8 @@
 
 ## Introduction
 Fizz X is a 2D axis-aligned physics library compatible with [Lua](https://lua.org) 5.1.
-Fizz X is useful in environments where external option like [Box2D](https://box2d.org) are unavailable.
+Fizz X was created primarily for educational purposes.
+Fizz X is useful in environments where more robust option like [Box2D](https://box2d.org) are unavailable.
 
 The source code is available on [GitHub](https://github.com/2dengine/fizzx) and the documentation is hosted on [2dengine.com](https://2dengine.com/doc/fizzx.html)
 
